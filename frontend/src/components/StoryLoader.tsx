@@ -2,24 +2,9 @@ import {useState, useEffect} from 'react';
 import {useParams, useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import LoadingStatus from './LoadingStatus';
-
-type StoryNode = {
-  id: number;
-  content: string;
-  is_ending: boolean;
-  is_winning_ending: boolean;
-  options: { text: string; node_id: number | null }[];
-};
-
-type Story = {
-  id: number;
-  title: string;
-  created_at: string;
-  root_node: StoryNode;
-  all_nodes: Record<number, StoryNode>;
-};
-
-const API_BASE_URL = "/api"
+import StoryGame from './StoryGame';
+import type {Story} from '../types';
+import { API_BASE_URL } from '../util';
 
 function StoryLoader() {
     const {id} = useParams();
@@ -70,7 +55,9 @@ function StoryLoader() {
 
     if (story) {
         return (
-            <div className='story-loader'></div> // TODO
+            <div className='story-loader'>
+                <StoryGame story={story} onNewStory={createNewStory} />
+            </div>
         )
     }
 }

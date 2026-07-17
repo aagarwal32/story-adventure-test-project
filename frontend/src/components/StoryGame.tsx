@@ -1,0 +1,100 @@
+import {useState, useEffect} from 'react';
+import type {Story, StoryNode, StoryOption} from '../types';
+
+type StoryGameProps = {
+    story: Story;
+    onNewStory: () => void;
+}
+
+function StoryGame({story, onNewStory}: StoryGameProps) {
+    const [currentNodeId, setCurrentNodeId] = useState<StoryNode['id']>(null);
+    const [currentNode, setCurrentNode] = useState<StoryNode | null>(null);
+    const [options, setOptions] = useState<StoryOption[]>([]);
+    const [isEnding, setIsEnding] = useState<StoryNode['is_ending']>(false);
+    const [isWinningEnding, setIsWinningEnding] = useState<StoryNode['is_winning_ending']>(false)
+
+    useEffect(() => {
+        if (story && story.root_node) {
+            const rootNodeId = story.root_node.id;
+            setCurrentNodeId(rootNodeId);
+        }
+    }, [story]);
+
+    useEffect(() => {
+        if (currentNodeId && story && story.all_nodes) {
+            const node = story.all_nodes[currentNodeId];
+
+            setCurrentNode(node);
+            setIsEnding(node.is_ending);
+            setIsWinningEnding(node.is_winning_ending);
+
+            if (!node.is_ending && node.options && node.options.length > 0) {
+                setOptions(node.options);
+            } else {
+                setOptions([]);
+            }
+        }
+    }, [currentNodeId, story]);
+
+    const chooseOption = (optionId: StoryOption['node_id']) => {
+        setCurrentNodeId(optionId);
+    }
+
+    const restartStory = () => {
+        if (story && story.root_node) {
+            setCurrentNodeId(story.root_node.id);
+        }
+    }
+
+    return (
+        <div className='story-game'>
+            <header className='story-header'>
+                <h2>{story.title}</h2>
+            </header>
+
+            <div className='story-content'>
+                {currentNode &&
+                    <div className='story-node'>
+                        <p>{currentNode.content}</p>
+
+                        {isEnding ? // if
+                            <div className='story-ending'>
+                                <h3>{isWinningEnding ? "Congratulations" : "The End"}</h3>
+                                {isWinningEnding ? "You reached a winning ending" : "Your adventure has ended."}
+                            </div>
+                            : // else
+                            <div className='story-options'>
+                                <h3>What will you do?</h3>
+                                <div className='options-list'>
+                                    {options.map((option, index) => {
+                                        return <button
+                                                key={index}
+                                                onClick={() => chooseOption(option.node_id)}
+                                                className='option-btn'
+                                                >
+                                                {option.text}
+                                                </button>
+                                    })}
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div className='story-controls'>
+                    <button onClick={restartStory} className='reset-btn'>
+                        Restart Story
+                    </button>
+                </div>
+
+                {onNewStory &&
+                    <button onClick={onNewStory} className='new-story-btn'>
+                        New Story
+                    </button>
+                }
+            </div>
+        </div>
+    );
+}
+
+export default StoryGame;
